@@ -4,15 +4,11 @@ Abaixo a demonstração dos `passos` necessário para rodar o programa
 
 ## **1º Passo :**
 
-- Inserir o arquivo `package.json` com as bibliotecas e instalar
-
-## **2º Passo :**
-
 ```ah
 $ pnpm i
 ```
 
-## **3º Passo :**
+## **2º Passo :**
 
 - Criar o banco de dados
 
@@ -20,7 +16,7 @@ $ pnpm i
 $ Docker compose up -d
 ```
 
-## **4º Passo :**
+## **3º Passo :**
 
 - Transformar o arquivo .env.exmplo em .env
 
@@ -28,7 +24,7 @@ $ Docker compose up -d
 $  cp .env.example .env
 ```
 
-## **5º Passo :**
+## **4º Passo :**
 
 - Gerar o client
 
@@ -36,7 +32,7 @@ $  cp .env.example .env
 $ npx prisma generate
 ```
 
-## **6º Passo :**
+## **5º Passo :**
 
 -Formatar o arquivo de schema
 
@@ -44,7 +40,7 @@ $ npx prisma generate
 $ npx prisma format
 ```
 
-## **7º Passo :**
+## **6º Passo :**
 
 - Criar uma migração do Sql para implantação do banco de dados
 
@@ -52,7 +48,7 @@ $ npx prisma format
 $ npx prisma migrate dev --name init
 ```
 
-## **8º Passo :**
+## **7º Passo :**
 
 - Verificar graficamente as tabelas
 
@@ -64,13 +60,13 @@ $ npx prisma studio
 
 ![alt text](image-12.png)
 
-## **9º Passo :**
+## **8º Passo :**
 
 - Gerar o Better_Auth_secret
 
 > https://better-auth.com/docs/installation#configure-database
 
-## **10º Passo :**
+## **9º Passo :**
 
 - integração do BetterAuth com o Fastify
 
@@ -82,6 +78,7 @@ $ npx prisma studio
 import "dotenv/config";
 
 import fastifyCors from "@fastify/cors";
+import { fromNodeHeaders } from "better-auth/node";
 import fastifySwagger from "@fastify/swagger";
 import fastifyApiReference from "@scalar/fastify-api-reference";
 import Fastify from "fastify";
@@ -174,7 +171,7 @@ app.route({
       const url = new URL(request.url, `http://${request.headers.host}`);
 
       // Convert Fastify headers to standard Headers object
-      const headers = new Headers();
+      const headers = fromNodeHeaders(request.headers);
       // Create Fetch API-compatible request
       const req = new Request(url.toString(), {
         method: request.method,
@@ -206,7 +203,7 @@ try {
 
 ```
 
-## **11º Passo :**
+## **10º Passo :**
 
 - Instalação da extensão do Prisma para melhorar a visualização
 
@@ -214,7 +211,7 @@ try {
 
 ![alt text](image-2.png)
 
-## **12º Passo :**
+## **11º Passo :**
 
 - Criação do arquivo auth.ts
 
@@ -233,7 +230,15 @@ const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
 });
 
+const serverPort = Number(process.env.PORT) || 8081;
+const authBaseURL =
+  process.env.BETTER_AUTH_BASE_URL ??
+  process.env.BETTER_AUTH_URL ??
+  process.env.BETTER_AUTH_URI ??
+  `http://localhost:${serverPort}`;
+
 export const auth = betterAuth({
+  baseURL: authBaseURL,
   trustedOrigins: ["http://localhost:3000"],
   emailAndPassword: {
     enabled: true,
@@ -245,7 +250,7 @@ export const auth = betterAuth({
 });
 ```
 
-## **13º Passo :**
+## **12º Passo :**
 
 - Criar o arquivo prisma.config.ts
 
@@ -268,7 +273,7 @@ export default defineConfig({
 });
 ```
 
-## **14º Passo :**
+## **13º Passo :**
 
 - Criar o arquivo `.env` com as configurações abaixo
 
@@ -279,15 +284,15 @@ export default defineConfig({
 - O BETTER_AUTH_SECRET deve ser gerado na página do link acima
 
 ```js
-DATABASE_URL="postgresql://postgres:password@localhost:5432/mydatabase?schema=public"
+DATABASE_URL="postgresql://postgres:password@localhost:5432/database_setup?schema=public"
 
 PORT=8080
 
 BETTER_AUTH_SECRET=secretkey
-BETTER_AUTH_URI=http://localhost:8080
+BETTER_AUTH_BASE_URL=http://localhost:8080
 ```
 
-## **15º Passo :**
+## **14º Passo :**
 
 - Próximo passo é gerar as tabelas no arquivo Schema.prisma
 
@@ -295,7 +300,7 @@ BETTER_AUTH_URI=http://localhost:8080
 $ npx @better-auth/cli generate
 ```
 
-## **16º Passo :**
+## **15º Passo :**
 
 - Gerar as tabelas de sessão, conta e verificação
 
@@ -351,7 +356,7 @@ model Verification {
 }
 ```
 
-## **17º Passo :**
+## **16º Passo :**
 
 \_ Agora fazer a nova migração e gerar as tabelas no banco de dados
 
@@ -363,7 +368,7 @@ $ npx prisma migrate dev --name init
 
 ![alt text](image-9.png)
 
-## **18º Passo :**
+## **17º Passo :**
 
 - Instalar a biblioteca `Scalar` - API de referência para o Fastify
 
@@ -379,7 +384,7 @@ $ pnpm add @scalar/fastify-api-reference@1.44.20
 
 ![alt text](image-8.png)
 
-## **19º Passo :**
+## **18º Passo :**
 
 - Retirar o Swagger-ui, as linhas 36 a 38, importar o Scalar e inserir a rota
 
@@ -389,7 +394,7 @@ $ pnpm add @scalar/fastify-api-reference@1.44.20
 import ScalarApiReference from "@scalar/fastify-api-reference";
 ```
 
-## **20º Passo :**
+## **19º Passo :**
 
 - Rodar a aplicação
 
@@ -397,29 +402,29 @@ import ScalarApiReference from "@scalar/fastify-api-reference";
 $ pnpm dev
 ```
 
-## Daqui prafrente agora serão os testes da Aplicação
+## Daqui pra frente agora serão os testes da Aplicação
 
 ## **1º Passo :**
 
-- Cadastro de usuário
+- Acessando a API do Scalar para Cadastro de usuário
 
 ```json
 {
   "name": "Luis Eduardo dos S. Pinheiro",
   "email": "licodevone@gmail.com",
-  "password": "Lico123",
+  "password": "Lico@123",
   "image": "",
   "callbackURL": "",
   "rememberMe": true
 }
 ```
 
-- Fazendo o Login do usuário cadastrado
+- Acessando a API do Scalar para o Login do usuário cadastrado
 
 ```json
 {
   "email": "licodevone@gmail.com",
-  "password": "Lico123",
+  "password": "Lico@123",
   "callbackURL": "",
   "image": "",
   "callbackURL": "",

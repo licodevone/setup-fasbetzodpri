@@ -6,11 +6,19 @@ import { openAPI } from "better-auth/plugins";
 
 import { PrismaClient } from "../generated/prisma/client.js";
 
+const serverPort = Number(process.env.PORT) || 8080;
+const authBaseURL =
+  // process.env.BETTER_AUTH_BASE_URL ??
+  process.env.BETTER_AUTH_URL ??
+  process.env.BETTER_AUTH_URI ??
+  `http://localhost:${serverPort}`;
+
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
 });
 
 export const auth = betterAuth({
+  baseURL: authBaseURL,
   trustedOrigins: ["http://localhost:3000"],
   emailAndPassword: {
     enabled: true,

@@ -3,6 +3,7 @@ import "dotenv/config";
 import fastifyCors from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
 import fastifyApiReference from "@scalar/fastify-api-reference";
+import { fromNodeHeaders } from "better-auth/node";
 import Fastify from "fastify";
 import {
   jsonSchemaTransform,
@@ -70,7 +71,7 @@ app.withTypeProvider<ZodTypeProvider>().route({
   // Define your schema
   schema: {
     description: "Hello world",
-    tags: ["Hello world"],
+    tags: ["Hello"],
     response: {
       200: z.object({
         message: z.string(),
@@ -93,7 +94,7 @@ app.route({
       const url = new URL(request.url, `http://${request.headers.host}`);
 
       // Convert Fastify headers to standard Headers object
-      const headers = new Headers();
+      const headers = fromNodeHeaders(request.headers);
       // Create Fetch API-compatible request
       const req = new Request(url.toString(), {
         method: request.method,
